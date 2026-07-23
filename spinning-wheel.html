@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekend Destination Spinner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        .main-section {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .sidebar {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto 30px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.05s linear;
+        }
+
+        .wheel-segment {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            transform-origin: center;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #ff6b6b;
+            z-index: 10;
+            filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-width: 150px;
+            font-size: 18px;
+        }
+
+        .spin-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .reset-btn {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .reset-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .add-place-btn {
+            background: #4CAF50;
+            color: white;
+            width: 100%;
+        }
+
+        .add-place-btn:hover {
+            background: #45a049;
+        }
+
+        .result {
+            margin-bottom: 20px;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-number {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+        }
+
+        .result-text {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+        }
+
+        .place-list {
+            margin-bottom: 20px;
+        }
+
+        .place-list h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1em;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            background: #ddd;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .places-input {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .places-input input {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .places-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .places-input button {
+            padding: 8px 15px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 12px;
+            min-height: 100px;
+            font-family: monospace;
+            margin-bottom: 8px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .places-list {
+            list-style: none;
+            max-height: 80px;
+            overflow-y: auto;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .places-list li {
+            background: #e8f5e9;
+            padding: 8px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #4CAF50;
+            font-size: 13px;
+        }
+
+        .remove-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            height: 22px;
+        }
+
+        .remove-btn:hover {
+            background: #ee5a52;
+        }
+
+        .bulk-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .bulk-buttons button {
+            flex: 1;
+            padding: 8px;
+        }
+
+        .legend-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .legend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .legend-list {
+            list-style: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .legend-list li {
+            background: white;
+            color: #333;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            border-left: 4px solid #667eea;
+            font-size: 12px;
+        }
+
+        .legend-list li .number {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin-right: 8px;
+            font-weight: bold;
+            font-size: 11px;
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .history-list {
+            list-style: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .history-list li {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 13px;
+        }
+
+        .history-list li .counter {
+            font-size: 0.8em;
+            opacity: 0.8;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .empty-history {
+            color: #999;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-buttons button {
+            padding: 8px;
+            font-size: 13px;
+        }
+
+        .clear-history-btn {
+            background: #ff9800;
+            color: white;
+        }
+
+        .clear-history-btn:hover {
+            background: #e68900;
+        }
+
+        .reset-all-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .reset-all-btn:hover {
+            background: #da190b;
+        }
+
+        .save-status {
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .auto-save-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #4CAF50;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                max-width: 500px;
+                margin: 0 auto;
+            }
+
+            .wheel-container {
+                width: 350px;
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-section">
+            <h1>🎡 Weekend Destination Picker</h1>
+
+            <div class="wheel-container">
+                <div class="pointer"></div>
+                <div class="wheel" id="wheel"></div>
+            </div>
+
+            <div class="result">
+                <div class="result-number" id="resultNumber"></div>
+                <div class="result-text" id="result">Add places to start!</div>
+            </div>
+
+            <div class="controls">
+                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎯 SPIN!</button>
+                <button class="reset-btn" onclick="resetWheel()">Reset Wheel</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="place-list">
+                <h3>📍 Add Places</h3>
+
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab('single')">Add One</button>
+                    <button class="tab-btn" onclick="switchTab('bulk')">Paste List</button>
+                </div>
+
+                <!-- Single Entry Tab -->
+                <div id="single" class="tab-content active">
+                    <div class="places-input">
+                        <input type="text" id="placeInput" placeholder="Enter destination..." />
+                        <button class="add-place-btn" onclick="addPlace()">+</button>
+                    </div>
+                </div>
+
+                <!-- Bulk Paste Tab -->
+                <div id="bulk" class="tab-content">
+                    <textarea id="bulkInput" placeholder="Paste one per line"></textarea>
+                    <div class="bulk-buttons">
+                        <button class="add-place-btn" onclick="addBulkPlaces()">Import</button>
+                        <button class="reset-btn" onclick="clearBulk()">Clear</button>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 12px;">Remaining (<span id="placeCount">0</span>)</h3>
+                <ul class="places-list" id="placesList"></ul>
+                <div class="save-status">
+                    <span class="auto-save-indicator"></span>Auto-saved
+                </div>
+            </div>
+
+            <div class="legend-section">
+                <div class="legend-header">
+                    <h2>📋 Legend</h2>
+                </div>
+                <input type="text" class="search-box" id="searchBox" placeholder="Search places..." onkeyup="filterLegend()">
+                <ul class="legend-list" id="legendList"></ul>
+            </div>
+
+            <div style="display: none;" id="historySection">
+                <h2>✓ Selected</h2>
+                <ul class="history-list" id="historyList">
+                    <li class="empty-history">No selections yet</li>
+                </ul>
+                <div class="control-buttons">
+                    <button class="clear-history-btn" onclick="clearHistory()">Clear History</button>
+                    <button class="reset-all-btn" onclick="resetAll()">Reset All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
+            '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
+            '#F8B88B', '#A8E6CF'
+        ];
+
+        let places = [];
+        let history = [];
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        function loadFromStorage() {
+            const savedPlaces = localStorage.getItem('spinnerPlaces');
+            const savedHistory = localStorage.getItem('spinnerHistory');
+            
+            if (savedPlaces) places = JSON.parse(savedPlaces);
+            if (savedHistory) history = JSON.parse(savedHistory);
+            
+            initWheel();
+            updateLegend();
+            updateHistory();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('spinnerPlaces', JSON.stringify(places));
+            localStorage.setItem('spinnerHistory', JSON.stringify(history));
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function initWheel() {
+            const wheel = document.getElementById('wheel');
+            wheel.innerHTML = '';
+
+            if (places.length === 0) {
+                document.getElementById('result').textContent = 'Add places to start!';
+                document.getElementById('resultNumber').textContent = '';
+                document.getElementById('placeCount').textContent = '0';
+                return;
+            }
+
+            document.getElementById('placeCount').textContent = places.length;
+            const segmentAngle = 360 / places.length;
+
+            places.forEach((place, index) => {
+                const segment = document.createElement('div');
+                segment.className = 'wheel-segment';
+                
+                // Create a container for the text to rotate properly
+                const textContainer = document.createElement('div');
+                textContainer.style.position = 'absolute';
+                textContainer.style.width = '100%';
+                textContainer.style.height = '100%';
+                textContainer.style.display = 'flex';
+                textContainer.style.alignItems = 'center';
+                textContainer.style.justifyContent = 'center';
+                textContainer.textContent = (index + 1);
+                
+                segment.appendChild(textContainer);
+                segment.style.backgroundColor = colors[index % colors.length];
+                segment.style.clipPath = `polygon(50% 50%, 50% 0%, ${100 * Math.cos((segmentAngle/2 - 90) * Math.PI/180) / 2 + 50}% ${100 * Math.sin((segmentAngle/2 - 90) * Math.PI/180) / 2 + 50}%, ${100 * Math.cos((segmentAngle - 90) * Math.PI/180) / 2 + 50}% ${100 * Math.sin((segmentAngle - 90) * Math.PI/180) / 2 + 50}%)`;
+                segment.style.transform = `rotate(${segmentAngle * index}deg)`;
+                
+                wheel.appendChild(segment);
+            });
+
+            updatePlacesList();
+        }
+
+        function addPlace() {
+            const input = document.getElementById('placeInput');
+            const place = input.value.trim();
+            if (place) {
+                places.push(place);
+                input.value = '';
+                initWheel();
+                updateLegend();
+                saveToStorage();
+            }
+        }
+
+        function addBulkPlaces() {
+            const textarea = document.getElementById('bulkInput');
+            const lines = textarea.value.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            if (lines.length === 0) {
+                alert('Please paste some locations!');
+                return;
+            }
+            places = [...places, ...lines];
+            textarea.value = '';
+            initWheel();
+            updateLegend();
+            saveToStorage();
+            alert(`✓ Imported ${lines.length} places!`);
+        }
+
+        function clearBulk() {
+            document.getElementById('bulkInput').value = '';
+        }
+
+        function removePlace(index) {
+            places.splice(index, 1);
+            initWheel();
+            updateLegend();
+            saveToStorage();
+        }
+
+        function updatePlacesList() {
+            const placesList = document.getElementById('placesList');
+            if (places.length === 0) {
+                placesList.innerHTML = '';
+                return;
+            }
+            placesList.innerHTML = places.map((place, index) => `
+                <li>
+                    <span>${place}</span>
+                    <button class="remove-btn" onclick="removePlace(${index})">✕</button>
+                </li>
+            `).join('');
+        }
+
+        function updateLegend() {
+            const legendList = document.getElementById('legendList');
+            if (places.length === 0) {
+                legendList.innerHTML = '';
+                return;
+            }
+            legendList.innerHTML = places.map((place, index) => `
+                <li data-place="${place.toLowerCase()}">
+                    <span class="number">${index + 1}</span>
+                    <span>${place}</span>
+                </li>
+            `).join('');
+        }
+
+        function filterLegend() {
+            const searchBox = document.getElementById('searchBox');
+            const filter = searchBox.value.toLowerCase();
+            document.querySelectorAll('#legendList li').forEach(item => {
+                const place = item.getAttribute('data-place');
+                item.style.display = place.includes(filter) ? '' : 'none';
+            });
+        }
+
+        function spinWheel() {
+            if (isSpinning || places.length === 0) return;
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            const spins = Math.floor(Math.random() * 5) + 8;
+            const extraDegrees = Math.floor(Math.random() * 360);
+            const totalRotation = spins * 360 + extraDegrees;
+
+            const wheel = document.getElementById('wheel');
+            wheel.style.transition = 'transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.98)';
+            currentRotation += totalRotation;
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                const normalizedRotation = ((360 - (currentRotation % 360)) % 360);
+                const segmentAngle = 360 / places.length;
+                const selectedIndex = Math.floor(normalizedRotation / segmentAngle) % places.length;
+                const selectedPlace = places[selectedIndex];
+                const selectedNumber = selectedIndex + 1;
+
+                document.getElementById('resultNumber').textContent = `#${selectedNumber}`;
+                document.getElementById('result').textContent = `🎉 ${selectedPlace}!`;
+
+                history.unshift(selectedPlace);
+                places.splice(selectedIndex, 1);
+                
+                updateHistory();
+                initWheel();
+                updateLegend();
+                saveToStorage();
+
+                isSpinning = false;
+                document.getElementById('spinBtn').disabled = places.length === 0;
+                wheel.style.transition = 'none';
+
+                if (places.length === 0) {
+                    document.getElementById('result').textContent = `All done! 🎊`;
+                }
+            }, 5000);
+        }
+
+        function updateHistory() {
+            const historySection = document.getElementById('historySection');
+            const historyList = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historySection.style.display = 'none';
+                return;
+            }
+
+            historySection.style.display = 'block';
+            historyList.innerHTML = history.map((place, index) => `
+                <li>
+                    ${place}
+                    <span class="counter">#${index + 1}</span>
+                </li>
+            `).join('');
+        }
+
+        function clearHistory() {
+            history = [];
+            updateHistory();
+            saveToStorage();
+        }
+
+        function resetAll() {
+            if (confirm('Reset everything? This will clear all places and history.')) {
+                places = [];
+                history = [];
+                currentRotation = 0;
+                const wheel = document.getElementById('wheel');
+                wheel.style.transition = 'none';
+                wheel.style.transform = 'rotate(0deg)';
+                document.getElementById('result').textContent = 'Add places to start!';
+                document.getElementById('resultNumber').textContent = '';
+                initWheel();
+                updateLegend();
+                updateHistory();
+                saveToStorage();
+            }
+        }
+
+        function resetWheel() {
+            const wheel = document.getElementById('wheel');
+            wheel.style.transition = 'none';
+            currentRotation = 0;
+            wheel.style.transform = 'rotate(0deg)';
+            document.getElementById('result').textContent = 'Ready to spin!';
+            document.getElementById('resultNumber').textContent = '';
+        }
+
+        document.getElementById('placeInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addPlace();
+        });
+
+        window.addEventListener('load', loadFromStorage);
+    </script>
+</body>
+</html>
